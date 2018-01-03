@@ -6,7 +6,7 @@
     <groupId>com.example</groupId>
 
     <artifactId>
-        cfp-notification-job
+     cfp-notification-job
     </artifactId>
 
     <version>0.0.1-SNAPSHOT</version>
