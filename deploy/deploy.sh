@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
-cf push -b java_buildpack --health-check-type none  --no-route  -p target/cfp-job.jar cfp-job
-cf s | grep scheduler-joshlong || cf cs scheduler-for-pcf standard scheduler-joshlong
-cf bs cfp-job scheduler-joshlong
+APP_NAME=cfp-notification-job
+JOB_NAME=$APP_NAME
+
+
+SCHEDULER_NAME=scheduler-joshlong
+
+cf push -b java_buildpack --health-check-type none  --no-route  -p target/${APP_NAME}.jar ${APP_NAME}
+
+# scheduler
+cf s | grep ${SCHEDULER_SERVICE_NAME} || cf cs scheduler-for-pcf standard ${SCHEDULER_SERVICE_NAME}
+cf bs ${APP_NAME} ${SCHEDULER_SERVICE_NAME}
 
 
 cf set-env cfp-job PINBOARD_TOKEN $PINBOARD_TOKEN
@@ -19,8 +27,9 @@ cf restage cfp-job
 
 # job management requires a specialized plugin for the `cf` CLI. See `cf.sh`.
 
-cf delete-job -f cfp-notifications
-cf create-job cfp-job cfp-notifications ".java-buildpack/open_jdk_jre/bin/java org.springframework.boot.loader.JarLauncher"
-cf run-job cfp-notifications
-cf schedule-job cfp-notifications "0 20 ? * *"
+
+cf delete-job -f $JOB_NAME
+cf create-job $APP_NAME $JOB_NAME ".java-buildpack/open_jdk_jre/bin/java org.springframework.boot.loader.JarLauncher"
+cf run-job $JOB_NAME
+cf schedule-job $JOB_NAME "0 20 ? * *"
 #cf schedule-job cfp-notifications "0 1 ? * *"
