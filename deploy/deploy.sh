@@ -6,7 +6,7 @@ JOB_NAME=$APP_NAME
 
 SCHEDULER_NAME=scheduler-joshlong
 
-cf push -b java_buildpack -u process --no-route     -p target/${APP_NAME}.jar ${APP_NAME}
+cf push -b java_buildpack -u none --no-route -p target/${APP_NAME}.jar ${APP_NAME}
 
 # scheduler
 cf s | grep ${SCHEDULER_NAME} || cf cs scheduler-for-pcf standard ${SCHEDULER_NAME}
@@ -26,9 +26,7 @@ cf restage $APP_NAME
 
 
 # job management requires a specialized plugin for the `cf` CLI. See `cf.sh`.
-
-
-cf delete-job -f $JOB_NAME
+cf jobs | grep $JOB_NAME && cf delete-job -f $JOB_NAME
 cf create-job $APP_NAME $JOB_NAME ".java-buildpack/open_jdk_jre/bin/java org.springframework.boot.loader.JarLauncher"
 cf run-job $JOB_NAME
 cf schedule-job $JOB_NAME "0 20 ? * *"
