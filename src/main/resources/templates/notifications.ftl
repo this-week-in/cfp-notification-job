@@ -2,7 +2,7 @@
 <html lang="en">
 <body>
 <p>
-    Hello, ${destinationName}. There are ${bookmarkCount} outstanding CFPs to process this (${year}).
+ Hello, ${destinationName}. There are still ${bookmarkCount} outstanding CFPs to process in ${year}.
 </P>
 <ol>
 <#list bookmarks as b>
