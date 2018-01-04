@@ -6,7 +6,7 @@ JOB_NAME=$APP_NAME
 
 SCHEDULER_NAME=scheduler-joshlong
 
-cf push -b java_buildpack --health-check-type none  --no-route  -p target/${APP_NAME}.jar ${APP_NAME}
+cf push -b java_buildpack -u process --no-route     -p target/${APP_NAME}.jar ${APP_NAME}
 
 # scheduler
 cf s | grep ${SCHEDULER_NAME} || cf cs scheduler-for-pcf standard ${SCHEDULER_NAME}
