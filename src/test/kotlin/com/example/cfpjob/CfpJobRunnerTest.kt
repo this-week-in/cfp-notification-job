@@ -21,11 +21,10 @@ import pinboard.PinboardConfiguration
 import java.net.URI
 import java.util.*
 
-@SpringBootTest(classes = [PinboardConfiguration::class,
-	CfpJobApplication::class])
 @RunWith(SpringRunner::class)
+@SpringBootTest(classes = [PinboardConfiguration::class, CfpJobApplication::class])
 class CfpJobRunnerTest {
-
+	
 	val props = CfpJobProperties(
 			subject = "subject",
 			source = Email("source@email.com", "From"),
@@ -62,11 +61,9 @@ class CfpJobRunnerTest {
 							"meta$i", Date(), false, false, arrayOf("cfp"))
 				}
 				.toTypedArray()
-
 		Mockito.`when`(client!!.getAllPosts(tag = arrayOf("cfp"))).thenReturn(bookmarks)
 		runner.run(DefaultApplicationArguments(emptyArray()))
-
-
+		Mockito.verify(this.client)!!.getAllPosts(tag = arrayOf("cfp"))
+		Mockito.verify(this.sg)!!.api(any(com.sendgrid.Request::class.java))
 	}
-
 }

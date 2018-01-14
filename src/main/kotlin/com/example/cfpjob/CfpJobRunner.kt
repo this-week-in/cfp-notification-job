@@ -34,7 +34,6 @@ fun main(args: Array<String>) {
 @EnableConfigurationProperties(CfpJobProperties::class)
 class CfpJobApplication
 
-
 @Component
 class CfpJobRunner(val job: CfpNotificationJob,
                    val configuration: Configuration,
@@ -90,12 +89,10 @@ class CfpNotificationJob(val sendGrid: SendGrid,
 			bookmarks: Collection<Bookmark>): String {
 
 		Assert.notNull(bookmarks, "the bookmarks collection should not be empty or null.")
-
 		val url = this.lambdaDiscoveryClient.getInstances("cfp-status-function")
 				.first()
 				.uri
 				.toString()
-
 		val dataModel = mapOf(
 				"cfpStatusFunctionUrl" to url,
 				"bookmarkCount" to bookmarks.size,
@@ -104,8 +101,7 @@ class CfpNotificationJob(val sendGrid: SendGrid,
 				"bookmarks" to bookmarks,
 				"year" to year.toString()
 		)
-
-		return StringWriter().use {
+		StringWriter().use {
 			template.process(dataModel, it)
 			return it.toString()
 		}
