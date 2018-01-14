@@ -24,7 +24,7 @@ import java.util.*
 @RunWith(SpringRunner::class)
 @SpringBootTest(classes = [PinboardConfiguration::class, CfpJobApplication::class])
 class CfpJobRunnerTest {
-	
+
 	val props = CfpJobProperties(
 			subject = "subject",
 			source = Email("source@email.com", "From"),
