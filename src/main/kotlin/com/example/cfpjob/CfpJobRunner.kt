@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient
+import org.springframework.cloud.function.discovery.aws.LambdaDiscoveryClient
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import pinboard.Bookmark
@@ -28,15 +30,21 @@ fun main(args: Array<String>) {
 }
 
 @SpringBootApplication
+@EnableDiscoveryClient
 @EnableConfigurationProperties(CfpJobProperties::class)
-class CfpJobApplication(val job: CfpNotificationService,
-                        val configuration: Configuration,
-                        val properties: CfpJobProperties,
-                        val client: PinboardClient) : ApplicationRunner {
+class CfpJobApplication
+
+
+@Component
+class CfpJobRunner(val job: CfpNotificationJob,
+                   val configuration: Configuration,
+                   val properties: CfpJobProperties,
+                   val client: PinboardClient) : ApplicationRunner {
 
 	private val log = LogFactory.getLog(javaClass)
 
 	override fun run(args: ApplicationArguments) {
+
 		val year = Instant.now().atZone(ZoneId.systemDefault()).year
 		val currentYearTag = Integer.toString(year)
 		val posts = client.getAllPosts(tag = arrayOf("cfp"))
@@ -49,7 +57,9 @@ class CfpJobApplication(val job: CfpNotificationService,
 		log.info(
 				"""
 					|Running CFP notification job.
-					|Job properties: ${properties}.
+					|Properties (subject): ${properties.subject}.
+					|Properties (destination): ${properties.destination}.
+					|Properties (source): ${properties.source}.
 					|Sending email to  ${email.name} (${email.email}).
 					|Going to send the following HTML: $html.
 					|Response: $response.
@@ -63,12 +73,13 @@ class CfpJobApplication(val job: CfpNotificationService,
 }
 
 @ConfigurationProperties("cfp.notifications")
-class CfpJobProperties(var subject: String? = null,
-                       var source: Email? = null,
-                       var destination: Email? = null)
+open class CfpJobProperties(var subject: String? = null,
+                            var source: Email? = null,
+                            var destination: Email? = null)
 
 @Component
-class CfpNotificationService(private val sendGrid: SendGrid) {
+class CfpNotificationJob(val sendGrid: SendGrid,
+                         val lambdaDiscoveryClient: LambdaDiscoveryClient) {
 
 	private val log = LogFactory.getLog(javaClass)
 
@@ -80,7 +91,13 @@ class CfpNotificationService(private val sendGrid: SendGrid) {
 
 		Assert.notNull(bookmarks, "the bookmarks collection should not be empty or null.")
 
-		val root = mapOf(
+		val url = this.lambdaDiscoveryClient.getInstances("cfp-status-function")
+				.first()
+				.uri
+				.toString()
+
+		val dataModel = mapOf(
+				"cfpStatusFunctionUrl" to url,
 				"bookmarkCount" to bookmarks.size,
 				"destinationName" to destinationName,
 				"time" to Date(),
@@ -88,8 +105,8 @@ class CfpNotificationService(private val sendGrid: SendGrid) {
 				"year" to year.toString()
 		)
 
-		StringWriter().use {
-			template.process(root, it)
+		return StringWriter().use {
+			template.process(dataModel, it)
 			return it.toString()
 		}
 	}
