@@ -47,18 +47,27 @@ class CfpJobRunner(val job: CfpNotificationJob,
 
 	override fun run(args: ApplicationArguments) {
 
-
 		val template = configuration.getTemplate("/notifications.ftl")
+		log.info("temmplate is not null? ${template != null}")
 		Assert.notNull(template, "the template must not be null")
-
 		val year = Instant.now().atZone(ZoneId.systemDefault()).year
 		val currentYearTag = Integer.toString(year)
+		log.info("the year is $currentYearTag")
 		val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
+		log.info("client is not null? ${client == null}")
+		log.info("found ${bookmarks.size} bookmarks")
 		val email = properties.destination!!
+		log.info("the destination email is ${email}")
 		val url = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName).first().uri.toString()
+		log.info("the $cfpStatusFunctionName URL is $url")
 		val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
+		log.info("generated HTML: ${html}")
 		val subject = String.format(properties.subject!!, bookmarks.size, year)
+		log.info("the subject is $subject")
 		val response = job.notify(properties.source!!, email, subject, html)
+		log.info("response status: ${response.statusCode} ")
+		log.info("response body: ${response.body} ")
+		log.info("response headers: ${response.headers} ")
 		log.info(
 				"""
 					|Running CFP notification job.
@@ -111,6 +120,7 @@ class CfpNotificationJob(val sendGrid: SendGrid) {
 	}
 
 	fun notify(from: Email, to: Email, subject: String, html: String): Response {
+		log.info("about to notify..")
 		val content = Content("text/html", html)
 		val mail = Mail(from, subject, to, content)
 		val request = Request().apply {
@@ -130,5 +140,7 @@ class CfpNotificationJob(val sendGrid: SendGrid) {
 					log.info(statement)
 					it
 				}
+
+
 	}
 }
