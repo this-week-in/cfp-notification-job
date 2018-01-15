@@ -46,22 +46,29 @@ class CfpJobRunner(val job: CfpNotificationJob,
 	private val cfpStatusFunctionName = "cfp-status-function"
 
 	override fun run(args: ApplicationArguments) {
+		try {
+			val template = configuration.getTemplate("/notifications.ftl")
+			Assert.notNull(template, "the template must not be null")
+			val year = Instant.now().atZone(ZoneId.systemDefault()).year
+			val currentYearTag = Integer.toString(year)
+			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
+			val email = properties.destination!!
+			val url = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName).first().uri.toString()
+			val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
+			val subject = String.format(properties.subject!!, bookmarks.size, year)
+			val response = job.notify(properties.source!!, email, subject, html)
 
-		val template = configuration.getTemplate("/notifications.ftl")
-		Assert.notNull(template, "the template must not be null")
-		val year = Instant.now().atZone(ZoneId.systemDefault()).year
-		val currentYearTag = Integer.toString(year)
-		val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
-		val email = properties.destination!!
-		val url = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName).first().uri.toString()
-		val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
-		val subject = String.format(properties.subject!!, bookmarks.size, year)
-		val response = job.notify(properties.source!!, email, subject, html)
-
-		log.debug("generated HTML: ${html}")
-		log.debug("response status: ${response.statusCode}")
-		log.debug("response body: ${response.body}")
-		log.debug("response headers: ${response.headers}")
+			log.debug("generated HTML: ${html}")
+			log.debug("response status: ${response.statusCode}")
+			log.debug("response body: ${response.body}")
+			log.debug("response headers: ")
+			(response.headers ?: mapOf()).forEach {
+				log.debug("response header: ${it.key} = ${it.value}")
+			}
+		}
+		catch (e: Exception) {
+			log.error("ERROR! something went wrong during processing!", e)
+		}
 	}
 }
 
@@ -108,18 +115,5 @@ class CfpNotificationJob(val sendGrid: SendGrid) {
 			body = mail.build()
 		}
 		return sendGrid.api(request)
-				.let {
-					val headers = it
-							.headers
-							.entries
-							.map({ "${it.key}=${it.value}" })
-							.joinToString(separator = ",")
-					val statement = listOf("response status code: ${it.statusCode}", "body: ${it.body}", "headers: ${headers}")
-							.joinToString(System.lineSeparator())
-					log.debug(statement)
-					it
-				}
-
-
 	}
 }
