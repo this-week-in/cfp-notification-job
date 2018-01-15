@@ -1,4 +1,4 @@
-package com.example.cfpjob
+package com.joshlong.cfpjob
 
 import com.sendgrid.Email
 import com.sendgrid.Response
