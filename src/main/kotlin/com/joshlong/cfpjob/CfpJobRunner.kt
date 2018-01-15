@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
+import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import pinboard.Bookmark
@@ -53,6 +54,13 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination!!
+			log.debug("what sort of ${DiscoveryClient::class} do we have? ")
+			log.debug(" ${this.lambdaDiscoveryClient.javaClass}")
+			if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
+				(this.lambdaDiscoveryClient as CompositeDiscoveryClient).discoveryClients.forEach {
+					log.debug("\tfound ${it.description()}.")
+				}
+			}
 			val instances = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName)
 			log.debug("we found ${instances.size} instances of the $cfpStatusFunctionName service.")
 			Assert.isTrue(instances.size > 0, "there should be 1 or more instances of $cfpStatusFunctionName")
