@@ -53,7 +53,10 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination!!
-			val url = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName).first().uri.toString()
+			val instances = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName)
+			log.debug("we found ${instances.size} instances of the $cfpStatusFunctionName service.")
+			Assert.isTrue(instances.size > 0, "there should be 1 or more instances of $cfpStatusFunctionName")
+			val url = instances.first().uri.toString()
 			val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
 			val subject = String.format(properties.subject!!, bookmarks.size, year)
 			val response = job.notify(properties.source!!, email, subject, html)
@@ -65,9 +68,8 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			(response.headers ?: mapOf()).forEach {
 				log.debug("response header: ${it.key} = ${it.value}")
 			}
-		}
-		catch (e: Exception) {
-			log.error("ERROR! something went wrong during processing!", e)
+		} catch (e: Exception) {
+			log.error("ERROR!", e)
 		}
 	}
 }
