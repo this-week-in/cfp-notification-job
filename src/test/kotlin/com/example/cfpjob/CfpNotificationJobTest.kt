@@ -58,7 +58,7 @@ class CfpNotificationJobTest {
 		val bookmarks = mutableListOf(Bookmark("href1", "description", "extended",
 				"hash1", "meta", Date(), false, false, arrayOf("a", "tag")))
 		val emailHtml = this.job!!.generateNotificationHtml(template,
-				"user@email.com", 2018, bookmarks)
+				"user@email.com", 2018, bookmarks, statusFunctionUrl)
 		Assertions.assertThat(bookmarks.size).isGreaterThan(0)
 		bookmarks.forEach {
 			Assertions.assertThat(emailHtml.contains("${statusFunctionUrl}?id=${it.hash}"))

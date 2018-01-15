@@ -54,7 +54,7 @@ class CfpJobRunnerTest {
 		Mockito.`when`(si.uri).thenReturn(URI.create("http://a-uri.com/a/b/c"))
 		Mockito.`when`(this.ldc!!.getInstances("cfp-status-function")).thenReturn(arrayListOf(si))
 		Mockito.`when`(this.sg!!.api(any())).thenReturn(Mockito.mock(Response::class.java))
-		val runner = CfpJobRunner(job!!, config!!, props, client!!)
+		val runner = CfpJobRunner(job!!, config!!, props, client!!, this.ldc!!)
 		val bookmarks: Array<Bookmark> = 0.until(10)
 				.map { i ->
 					Bookmark("href$i", "description$i", "extended$i", "hash$i",

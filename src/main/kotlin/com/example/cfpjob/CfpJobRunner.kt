@@ -11,8 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
-import org.springframework.cloud.function.discovery.aws.LambdaDiscoveryClient
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import pinboard.Bookmark
@@ -38,19 +38,25 @@ class CfpJobApplication
 class CfpJobRunner(val job: CfpNotificationJob,
                    val configuration: Configuration,
                    val properties: CfpJobProperties,
-                   val client: PinboardClient) : ApplicationRunner {
+                   val client: PinboardClient,
+                   val lambdaDiscoveryClient: DiscoveryClient) : ApplicationRunner {
 
 	private val log = LogFactory.getLog(javaClass)
 
+	private val cfpStatusFunctionName = "cfp-status-function"
+
 	override fun run(args: ApplicationArguments) {
+
+
+		val template = configuration.getTemplate("/notifications.ftl")
+		Assert.notNull(template, "the template must not be null")
 
 		val year = Instant.now().atZone(ZoneId.systemDefault()).year
 		val currentYearTag = Integer.toString(year)
-		val posts = client.getAllPosts(tag = arrayOf("cfp"))
-		val template = configuration.getTemplate("/notifications.ftl")
-		val bookmarks = posts.filter { !it.tags.contains(currentYearTag) }
+		val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 		val email = properties.destination!!
-		val html = job.generateNotificationHtml(template, email.name, year, bookmarks)
+		val url = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName).first().uri.toString()
+		val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
 		val subject = String.format(properties.subject!!, bookmarks.size, year)
 		val response = job.notify(properties.source!!, email, subject, html)
 		log.info(
@@ -77,8 +83,7 @@ open class CfpJobProperties(var subject: String? = null,
                             var destination: Email? = null)
 
 @Component
-class CfpNotificationJob(val sendGrid: SendGrid,
-                         val lambdaDiscoveryClient: LambdaDiscoveryClient) {
+class CfpNotificationJob(val sendGrid: SendGrid) {
 
 	private val log = LogFactory.getLog(javaClass)
 
@@ -86,15 +91,13 @@ class CfpNotificationJob(val sendGrid: SendGrid,
 			template: Template,
 			destinationName: String,
 			year: Int,
-			bookmarks: Collection<Bookmark>): String {
+			bookmarks: Collection<Bookmark>,
+			cfpStatusFunctionUrl: String): String {
 
 		Assert.notNull(bookmarks, "the bookmarks collection should not be empty or null.")
-		val url = this.lambdaDiscoveryClient.getInstances("cfp-status-function")
-				.first()
-				.uri
-				.toString()
+
 		val dataModel = mapOf(
-				"cfpStatusFunctionUrl" to url,
+				"cfpStatusFunctionUrl" to cfpStatusFunctionUrl,
 				"bookmarkCount" to bookmarks.size,
 				"destinationName" to destinationName,
 				"time" to Date(),
