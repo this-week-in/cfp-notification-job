@@ -76,7 +76,7 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			(response.headers ?: mapOf()).forEach {
 				log.debug("response header: ${it.key} = ${it.value}")
 			}
-		} catch (e: Exception) {
+		} catch (e: Throwable) {
 			log.error("ERROR!", e)
 		}
 	}
