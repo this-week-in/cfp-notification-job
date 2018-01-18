@@ -28,10 +28,16 @@ import java.time.ZoneId
 import java.util.*
 
 fun main(args: Array<String>) {
-	SpringApplicationBuilder()
-			.web(WebApplicationType.NONE)
-			.sources(CfpJobApplication::class.java)
-			.run(*args)
+	val log = LogFactory.getLog(CfpJobRunner::class.java)
+	try {
+		SpringApplicationBuilder()
+				.web(WebApplicationType.NONE)
+				.sources(CfpJobApplication::class.java)
+				.run(*args)
+	}
+	catch (ex: Throwable) {
+		log.error("Error ${Instant.now().atZone(ZoneId.systemDefault())} when running ${CfpJobApplication::class.java.name}.", ex)
+	}
 }
 
 @SpringBootApplication
