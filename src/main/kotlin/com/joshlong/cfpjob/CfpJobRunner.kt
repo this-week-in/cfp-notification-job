@@ -6,6 +6,7 @@ import freemarker.template.Template
 import org.apache.commons.logging.LogFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.ExitCodeEvent
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -14,6 +15,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
+import org.springframework.context.event.ApplicationContextEvent
+import org.springframework.context.event.ContextStoppedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import pinboard.Bookmark
@@ -33,7 +37,28 @@ fun main(args: Array<String>) {
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableConfigurationProperties(CfpJobProperties::class)
-class CfpJobApplication
+class CfpJobApplication {
+
+	private val log = LogFactory.getLog(javaClass)
+
+	@EventListener(ExitCodeEvent::class)
+	fun exit(exitCodeEvent: ExitCodeEvent) {
+		log.debug("exit code is ${exitCodeEvent.exitCode}, timestamp is ${exitCodeEvent.timestamp} and source is ${exitCodeEvent.source} ")
+	}
+
+	@EventListener(ApplicationContextEvent::class)
+	fun error(ace: ApplicationContextEvent) {
+		if (ace is ContextStoppedEvent) {
+			log.debug(
+					"""
+					|Stopping ${ace.applicationContext.javaClass.name}.
+					| source: ${ace.source}
+					| ${ace}
+					""".trimMargin("|"))
+
+		}
+	}
+}
 
 @Component
 class CfpJobRunner(val job: CfpNotificationJob,
