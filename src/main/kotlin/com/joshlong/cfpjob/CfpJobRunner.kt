@@ -34,8 +34,7 @@ fun main(args: Array<String>) {
 				.web(WebApplicationType.NONE)
 				.sources(CfpJobApplication::class.java)
 				.run(*args)
-	}
-	catch (ex: Throwable) {
+	} catch (ex: Throwable) {
 		log.error("Error ${Instant.now().atZone(ZoneId.systemDefault())} when running ${CfpJobApplication::class.java.name}.", ex)
 	}
 }
@@ -113,7 +112,7 @@ class CfpJobRunner(val job: CfpNotificationJob,
 	}
 }
 
-@ConfigurationProperties("cfp.notifications")
+@ConfigurationProperties(prefix = "cfp.notifications")
 open class CfpJobProperties(var subject: String? = null,
                             var source: Email? = null,
                             var destination: Email? = null)
