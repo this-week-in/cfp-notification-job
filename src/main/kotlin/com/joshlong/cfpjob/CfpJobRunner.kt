@@ -74,7 +74,25 @@ class CfpJobRunner(val job: CfpNotificationJob,
 
 	private val log = LogFactory.getLog(javaClass)
 
-	private val cfpStatusFunctionName = "cfp-status-function"
+	private fun cfpStatusFunctionName(): String? {
+		val cfpStatusFunctionName = "cfp-status-function"
+
+		log.debug("what sort of ${DiscoveryClient::class} do we have? ")
+		log.debug(" ${this.lambdaDiscoveryClient.javaClass}")
+		if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
+			(this.lambdaDiscoveryClient as CompositeDiscoveryClient).discoveryClients.forEach {
+				log.debug("\tfound ${it.description()}.")
+			}
+		}
+		val instances = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName)
+		log.debug("we found ${instances.size} instances of the $cfpStatusFunctionName service.")
+
+		return if (instances.size == 0) {
+			null
+		} else {
+			instances.first().uri.toString()
+		}
+	}
 
 	override fun run(args: ApplicationArguments) {
 		try {
@@ -84,25 +102,18 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination!!
-			log.debug("what sort of ${DiscoveryClient::class} do we have? ")
-			log.debug(" ${this.lambdaDiscoveryClient.javaClass}")
-			if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
-				(this.lambdaDiscoveryClient as CompositeDiscoveryClient).discoveryClients.forEach {
-					log.debug("\tfound ${it.description()}.")
-				}
-			}
-			val instances = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName)
-			log.debug("we found ${instances.size} instances of the $cfpStatusFunctionName service.")
-			Assert.isTrue(instances.size > 0, "there should be 1 or more instances of $cfpStatusFunctionName")
-			val url = instances.first().uri.toString()
-			val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, url)
+			val cfpStatusFunctionUrl = this.cfpStatusFunctionName() ?: ""
+			val html = job.generateNotificationHtml(template, email.name
+					?: email.email, year, bookmarks, cfpStatusFunctionUrl)
 			val subject = String.format(properties.subject!!, bookmarks.size, year)
 			val response = job.notify(properties.source!!, email, subject, html)
 
-			log.debug("generated HTML: ${html}")
-			log.debug("response status: ${response.statusCode}")
-			log.debug("response body: ${response.body}")
-			log.debug("response headers: ")
+			log.debug("""
+				generated HTML:   ${html}
+				response status:  ${response.statusCode}
+				response body:    ${response.body}
+				response headers:
+			""".trimMargin())
 			(response.headers ?: mapOf()).forEach {
 				log.debug("response header: ${it.key} = ${it.value}")
 			}
