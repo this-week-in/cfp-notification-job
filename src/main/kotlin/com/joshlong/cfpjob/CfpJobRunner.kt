@@ -56,8 +56,8 @@ class CfpJobApplication {
 		if (ace is ContextStoppedEvent) {
 			log.debug(
 					"""
-					|Stopping ${ace.applicationContext.javaClass.name}.
-					| source: ${ace.source}
+					|Stopping:  ${ace.applicationContext.javaClass.name}.
+					|Source:    ${ace.source}
 					| ${ace}
 					""".trimMargin("|"))
 
