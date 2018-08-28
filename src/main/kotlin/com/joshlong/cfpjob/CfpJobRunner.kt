@@ -48,7 +48,8 @@ class CfpJobApplication {
 
 	@EventListener(ExitCodeEvent::class)
 	fun exit(exitCodeEvent: ExitCodeEvent) {
-		log.debug("exit code is ${exitCodeEvent.exitCode}, timestamp is ${exitCodeEvent.timestamp} and source is ${exitCodeEvent.source} ")
+		log.debug("exit code is ${exitCodeEvent.exitCode}, timestamp is " +
+				"${exitCodeEvent.timestamp} and source is ${exitCodeEvent.source} ")
 	}
 
 	@EventListener(ApplicationContextEvent::class)
@@ -74,9 +75,7 @@ class CfpJobRunner(val job: CfpNotificationJob,
 
 	private val log = LogFactory.getLog(javaClass)
 
-	private fun cfpStatusFunctionName(): String? {
-		val cfpStatusFunctionName = "cfp-status-function"
-
+	private fun cfpStatusFunctionUrl(cfpStatusFunctionName: String): String {
 		log.debug("what sort of ${DiscoveryClient::class} do we have? ")
 		log.debug(" ${this.lambdaDiscoveryClient.javaClass}")
 		if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
@@ -86,12 +85,8 @@ class CfpJobRunner(val job: CfpNotificationJob,
 		}
 		val instances = this.lambdaDiscoveryClient.getInstances(cfpStatusFunctionName)
 		log.debug("we found ${instances.size} instances of the $cfpStatusFunctionName service.")
-
-		return if (instances.size == 0) {
-			null
-		} else {
-			instances.first().uri.toString()
-		}
+		Assert.isTrue(instances.size > 0, "there should be at least one instance of the service.")
+		return instances.first().uri.toString()
 	}
 
 	override fun run(args: ApplicationArguments) {
@@ -102,7 +97,7 @@ class CfpJobRunner(val job: CfpNotificationJob,
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination!!
-			val cfpStatusFunctionUrl = this.cfpStatusFunctionName() ?: ""
+			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName!!)
 			val html = job.generateNotificationHtml(template, email.name
 					?: email.email, year, bookmarks, cfpStatusFunctionUrl)
 			val subject = String.format(properties.subject!!, bookmarks.size, year)
@@ -126,7 +121,8 @@ class CfpJobRunner(val job: CfpNotificationJob,
 @ConfigurationProperties(prefix = "cfp.notifications")
 open class CfpJobProperties(var subject: String? = null,
                             var source: Email? = null,
-                            var destination: Email? = null)
+                            var destination: Email? = null,
+                            var functionName: String? = null)
 
 @Component
 class CfpNotificationJob(val sendGrid: SendGrid) {
