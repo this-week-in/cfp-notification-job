@@ -76,8 +76,7 @@ class CfpJobRunner(val job: CfpNotificationJob,
 	private val log = LogFactory.getLog(javaClass)
 
 	private fun cfpStatusFunctionUrl(cfpStatusFunctionName: String): String {
-		log.debug("what sort of ${DiscoveryClient::class} do we have? ")
-		log.debug(" ${this.lambdaDiscoveryClient.javaClass}")
+		log.debug("what sort of ${DiscoveryClient::class} do we have? ${this.lambdaDiscoveryClient.javaClass}")
 		if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
 			(this.lambdaDiscoveryClient as CompositeDiscoveryClient).discoveryClients.forEach {
 				log.debug("\tfound ${it.description()}.")
