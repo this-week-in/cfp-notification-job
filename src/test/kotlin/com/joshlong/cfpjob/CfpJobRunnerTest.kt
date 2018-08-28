@@ -25,8 +25,11 @@ import java.util.*
 @SpringBootTest(classes = [PinboardConfiguration::class, CfpJobApplication::class])
 class CfpJobRunnerTest {
 
+	val fnName = "cfp-status-function"
+
 	val props = CfpJobProperties(
 			subject = "subject",
+			functionName = fnName,
 			source = Email("source@email.com", "From"),
 			destination = Email("to@email.com", "To"))
 
@@ -52,7 +55,7 @@ class CfpJobRunnerTest {
 	fun run() {
 		val si = Mockito.mock(ServiceInstance::class.java)
 		Mockito.`when`(si.uri).thenReturn(URI.create("http://a-uri.com/a/b/c"))
-		Mockito.`when`(this.ldc!!.getInstances("cfp-status-function")).thenReturn(arrayListOf(si))
+		Mockito.`when`(this.ldc!!.getInstances(fnName)).thenReturn(arrayListOf(si))
 		Mockito.`when`(this.sg!!.api(any())).thenReturn(Mockito.mock(Response::class.java))
 		val runner = CfpJobRunner(job!!, config!!, props, client!!, this.ldc!!)
 		val bookmarks: Array<Bookmark> = 0.until(10)
