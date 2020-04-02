@@ -67,19 +67,20 @@ class CfpJobApplication {
 }
 
 @Component
-class CfpJobRunner(val job: CfpNotificationJob,
-                   val configuration: Configuration,
-                   val properties: CfpJobProperties,
-                   val client: PinboardClient,
-                   val lambdaDiscoveryClient: DiscoveryClient) : ApplicationRunner {
+class CfpJobRunner(private val job: CfpNotificationJob,
+                   private val configuration: Configuration,
+                   private val properties: CfpJobProperties,
+                   private val client: PinboardClient,
+                   private val lambdaDiscoveryClient: DiscoveryClient) : ApplicationRunner {
 
 	private val log = LogFactory.getLog(javaClass)
 
 	private fun cfpStatusFunctionUrl(cfpStatusFunctionName: String): String {
 		log.info("looking for function named ${cfpStatusFunctionName}.")
 		log.debug("what sort of ${DiscoveryClient::class} do we have? ${this.lambdaDiscoveryClient.javaClass}")
-		if (this.lambdaDiscoveryClient is CompositeDiscoveryClient) {
-			(this.lambdaDiscoveryClient as CompositeDiscoveryClient).discoveryClients.forEach {
+
+		if (lambdaDiscoveryClient is CompositeDiscoveryClient) {
+			lambdaDiscoveryClient.discoveryClients.forEach {
 				log.debug("\tfound ${it.description()}.")
 			}
 		}
@@ -119,13 +120,13 @@ class CfpJobRunner(val job: CfpNotificationJob,
 }
 
 @ConfigurationProperties(prefix = "cfp.notifications")
-open class CfpJobProperties(var subject: String? = null,
+class CfpJobProperties(var subject: String? = null,
                             var source: Email? = null,
                             var destination: Email? = null,
                             var functionName: String? = null)
 
 @Component
-class CfpNotificationJob(val sendGrid: SendGrid) {
+class CfpNotificationJob(private val sendGrid: SendGrid) {
 
 	private val log = LogFactory.getLog(javaClass)
 
