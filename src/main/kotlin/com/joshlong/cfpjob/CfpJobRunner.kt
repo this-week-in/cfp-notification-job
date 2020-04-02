@@ -1,6 +1,9 @@
 package com.joshlong.cfpjob
 
-import com.sendgrid.*
+import com.sendgrid.Method
+import com.sendgrid.Request
+import com.sendgrid.Response
+import com.sendgrid.SendGrid
 import freemarker.template.Configuration
 import freemarker.template.Template
 import org.apache.commons.logging.LogFactory
