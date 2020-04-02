@@ -4,6 +4,9 @@ import com.sendgrid.Method
 import com.sendgrid.Request
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
+import com.sendgrid.helpers.mail.Mail
+import com.sendgrid.helpers.mail.objects.Content
+import com.sendgrid.helpers.mail.objects.Email
 import freemarker.template.Configuration
 import freemarker.template.Template
 import org.apache.commons.logging.LogFactory

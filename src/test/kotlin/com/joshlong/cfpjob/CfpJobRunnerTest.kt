@@ -1,8 +1,8 @@
 package com.joshlong.cfpjob
 
-import com.sendgrid.Email
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
+import com.sendgrid.helpers.mail.objects.Email
 import freemarker.template.Configuration
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,7 +65,7 @@ class CfpJobRunnerTest {
 				}
 				.toTypedArray()
 		Mockito.`when`(client!!.getAllPosts(tag = arrayOf("cfp"))).thenReturn(bookmarks)
-		runner.run(DefaultApplicationArguments(emptyArray()))
+		runner.run(DefaultApplicationArguments())
 		Mockito.verify(this.client)!!.getAllPosts(tag = arrayOf("cfp"))
 		Mockito.verify(this.sg)!!.api(any(com.sendgrid.Request::class.java))
 	}
