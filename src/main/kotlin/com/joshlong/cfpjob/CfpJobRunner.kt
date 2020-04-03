@@ -1,35 +1,22 @@
 package com.joshlong.cfpjob
 
-import com.sendgrid.helpers.mail.objects.Email
 import freemarker.template.Configuration
 import org.apache.commons.logging.LogFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
-import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
 import pinboard.PinboardClient
 import java.time.Instant
 import java.time.ZoneId
-import java.util.stream.Collectors
 
-fun main(args: Array<String>) {
+fun main() {
 	val log = LogFactory.getLog(CfpJobRunner::class.java)
 	try {
-
-		/*
-			SpringApplicationBuilder()
-				.web(WebApplicationType.NONE)
-				.sources(CfpJobApplication::class.java)
-				.run(*args)
-
-		*/
 		runApplication<CfpJobApplication>()
-
 	} catch (ex: Throwable) {
 		log.error("Error ${Instant.now().atZone(ZoneId.systemDefault())} when running ${CfpJobApplication::class.java.name}.", ex)
 	}
@@ -42,18 +29,6 @@ class CfpJobRunner(private val job: CfpNotificationJob,
                    private val client: PinboardClient,
                    private val lambdaDiscoveryClient: DiscoveryClient) : ApplicationRunner {
 
-
-	@EventListener(ApplicationReadyEvent::class)
-	fun ready() {
-
-		val str = mutableListOf<String> ()
-		System.getenv().forEach { k,v ->
-			str.add ( "$k=$v")
-		}
-		val r : String = str.stream().collect(Collectors.joining(System.lineSeparator()))
-		job!!.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secrets",
-				 r )
-	}
 
 	private val log = LogFactory.getLog(javaClass)
 

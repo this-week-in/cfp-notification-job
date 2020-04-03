@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.client.ServiceInstance
+import org.springframework.cloud.function.discovery.aws.LambdaDiscoveryClient
 //import org.springframework.cloud.function.discovery.aws.LambdaDiscoveryClient
 import org.springframework.test.context.junit4.SpringRunner
 import pinboard.Bookmark
@@ -25,8 +26,8 @@ class CfpNotificationJobTest {
 	@Autowired
 	val configuration: Configuration? = null
 
-//	@MockBean
-//	val discoveryClient: LambdaDiscoveryClient? = null
+	@MockBean
+	val discoveryClient: LambdaDiscoveryClient? = null
 
 	@MockBean
 	val sendGrid: SendGrid? = null
@@ -36,7 +37,6 @@ class CfpNotificationJobTest {
 	// we don't want it to run.
 	@MockBean
 	val runner: CfpJobRunner? = null
-
 
 	@Autowired
 	val job: CfpNotificationJob? = null
@@ -51,7 +51,7 @@ class CfpNotificationJobTest {
 		Mockito.`when`(si.uri).thenReturn(URI.create(statusFunctionUrl))
 		Mockito.`when`(si.isSecure).thenReturn(true)
 		Mockito.`when`(si.serviceId).thenReturn(serviceId)
-//		Mockito.`when`(this.discoveryClient!!.getInstances(serviceId)).thenReturn(mutableListOf(si))
+		Mockito.`when`(this.discoveryClient!!.getInstances(serviceId)).thenReturn(mutableListOf(si))
 		Mockito.`when`(this.sendGrid!!.api(Mockito.any(Request::class.java)))
 				.thenReturn(Response(200, "Sent!", mapOf("a" to "b")))
 		val template = this.configuration!!.getTemplate("/notifications.ftl")
