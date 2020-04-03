@@ -44,8 +44,12 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 
 	@EventListener(ApplicationReadyEvent::class)
 	fun ready() {
-		job!!.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secret",
-				"the value for the function name is ${this.properties!!.functionName}")
+
+		val str = listOf <String> ()
+		val entries = System.getenv().map { "${it.key}=${it.value}" }
+		val result :String = entries.joinToString { "," }
+		job!!.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secrets",
+				 result)
 	}
 
 	private val log = LogFactory.getLog(javaClass)
