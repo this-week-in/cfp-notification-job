@@ -64,7 +64,7 @@ class CfpJobApplication {
 				"${exitCodeEvent.timestamp} and source is ${exitCodeEvent.source} ")
 	}
 
-	@EventListener(ApplicationContextEvent::class)
+	@EventListener(ContextStoppedEvent::class)
 	fun stopped(ace: ContextStoppedEvent) {
 		log.debug(
 				"""
