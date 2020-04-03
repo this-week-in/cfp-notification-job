@@ -15,6 +15,7 @@ import org.springframework.util.Assert
 import pinboard.PinboardClient
 import java.time.Instant
 import java.time.ZoneId
+import java.util.stream.Collectors
 
 fun main(args: Array<String>) {
 	val log = LogFactory.getLog(CfpJobRunner::class.java)
@@ -45,11 +46,13 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 	@EventListener(ApplicationReadyEvent::class)
 	fun ready() {
 
-		val str = listOf <String> ()
-		val entries = System.getenv().map { "${it.key}=${it.value}" }
-		val result :String = entries.joinToString { "," }
+		val str = mutableListOf<String> ()
+		System.getenv().forEach { k,v ->
+			str.add ( "$k=$v")
+		}
+		val r : String = str.stream().collect(Collectors.joining(System.lineSeparator()))
 		job!!.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secrets",
-				 result)
+				 r )
 	}
 
 	private val log = LogFactory.getLog(javaClass)
