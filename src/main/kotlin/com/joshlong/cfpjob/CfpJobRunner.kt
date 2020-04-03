@@ -110,10 +110,10 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 
 
 			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName!!)
-			val html = job.generateNotificationHtml(template, email.name
+			val html = job.generateNotificationHtml(template, email!!.name
 					?: email.email, year, bookmarks, cfpStatusFunctionUrl)
-			val subject = String.format(properties.subject, bookmarks.size, year)
-			val response = job.notify(properties.source, email, subject, html)
+			val subject = String.format(properties.subject!!, bookmarks.size, year)
+			val response = job.notify(properties.source!!, email!!, subject, html)
 
 			log.debug("""
 				generated HTML:   ${html}
@@ -132,9 +132,9 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "cfp.notifications")
-class CfpJobProperties(val subject: String,
-                       val source: Email,
-                       val destination: Email,
+class CfpJobProperties(var subject: String? ? = null,
+                       var source: Email? = null,
+                       var destination: Email? = null,
                        var functionName: String? = null)
 
 @Component

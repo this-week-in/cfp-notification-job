@@ -16,7 +16,7 @@ install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -U
 
 script:
-  - mvn -e test
+  - mvn spring-boot:run
 #  - mvn -e verify deploy
-  - ./deploy/cf.sh
-  - ./deploy/deploy.sh
+#  - ./deploy/cf.sh
+#  - ./deploy/deploy.sh
