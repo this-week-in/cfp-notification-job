@@ -13,11 +13,11 @@ import org.apache.commons.logging.LogFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.ExitCodeEvent
-import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.runApplication
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
@@ -33,13 +33,19 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.*
 
-fun main(args: Array<String>) {
+fun main() {
 	val log = LogFactory.getLog(CfpJobRunner::class.java)
 	try {
-		SpringApplicationBuilder()
+
+		/*
+			SpringApplicationBuilder()
 				.web(WebApplicationType.NONE)
 				.sources(CfpJobApplication::class.java)
 				.run(*args)
+
+		*/
+		runApplication<CfpJobApplication>()
+
 	} catch (ex: Throwable) {
 		log.error("Error ${Instant.now().atZone(ZoneId.systemDefault())} when running ${CfpJobApplication::class.java.name}.", ex)
 	}
@@ -59,17 +65,15 @@ class CfpJobApplication {
 	}
 
 	@EventListener(ApplicationContextEvent::class)
-	fun error(ace: ApplicationContextEvent) {
-		if (ace is ContextStoppedEvent) {
-			log.debug(
-					"""
+	fun stopped(ace: ContextStoppedEvent) {
+		log.debug(
+				"""
 					|Stopping:  ${ace.applicationContext.javaClass.name}.
 					|Source:    ${ace.source}
 					| ${ace}
 					""".trimMargin("|"))
-
-		}
 	}
+
 }
 
 @Component
@@ -103,12 +107,11 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 			val year = Instant.now().atZone(ZoneId.systemDefault()).year
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
-			val email = properties.destination!!
-			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName!!)
-			val html = job.generateNotificationHtml(template, email.name
-					?: email.email, year, bookmarks, cfpStatusFunctionUrl)
-			val subject = String.format(properties.subject!!, bookmarks.size, year)
-			val response = job.notify(properties.source!!, email, subject, html)
+			val email = properties.destination
+			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName)
+			val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, cfpStatusFunctionUrl)
+			val subject = String.format(properties.subject, bookmarks.size, year)
+			val response = job.notify(properties.source, email, subject, html)
 
 			log.debug("""
 				generated HTML:   ${html}
@@ -125,11 +128,12 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 	}
 }
 
+@ConstructorBinding
 @ConfigurationProperties(prefix = "cfp.notifications")
-class CfpJobProperties(var subject: String? = null,
-                            var source: Email? = null,
-                            var destination: Email? = null,
-                            var functionName: String? = null)
+class CfpJobProperties(val subject: String,
+                       val source: Email,
+                       val destination: Email,
+                       val functionName: String)
 
 @Component
 class CfpNotificationJob(private val sendGrid: SendGrid) {

@@ -1,4 +1,4 @@
-# Build the Pinboard Client
+# Build CFP Notification Job
 # https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
 
 name: CI
