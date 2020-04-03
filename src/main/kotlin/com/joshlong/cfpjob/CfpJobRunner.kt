@@ -21,7 +21,6 @@ import org.springframework.boot.runApplication
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
-import org.springframework.context.event.ApplicationContextEvent
 import org.springframework.context.event.ContextStoppedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -108,8 +107,13 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 			val currentYearTag = Integer.toString(year)
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination
-			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName)
-			val html = job.generateNotificationHtml(template, email.name ?: email.email, year, bookmarks, cfpStatusFunctionUrl)
+
+			job.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secret",
+					"the value for the function name is ${properties.functionName}")
+
+			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName!!)
+			val html = job.generateNotificationHtml(template, email.name
+					?: email.email, year, bookmarks, cfpStatusFunctionUrl)
 			val subject = String.format(properties.subject, bookmarks.size, year)
 			val response = job.notify(properties.source, email, subject, html)
 
@@ -133,7 +137,7 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 class CfpJobProperties(val subject: String,
                        val source: Email,
                        val destination: Email,
-                       val functionName: String)
+                       var functionName: String? = null)
 
 @Component
 class CfpNotificationJob(private val sendGrid: SendGrid) {
