@@ -108,8 +108,6 @@ class CfpJobRunner(private val job: CfpNotificationJob,
 			val bookmarks = client.getAllPosts(tag = arrayOf("cfp")).filter { !it.tags.contains(currentYearTag) }
 			val email = properties.destination
 
-			job.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secret",
-					"the value for the function name is ${properties.functionName}")
 
 			val cfpStatusFunctionUrl = this.cfpStatusFunctionUrl(properties.functionName!!)
 			val html = job.generateNotificationHtml(template, email.name

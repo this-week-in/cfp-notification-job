@@ -42,6 +42,9 @@ class CfpJobRunnerTest {
 	@Autowired
 	val job: CfpNotificationJob? = null
 
+	@Autowired
+	val cfpJobProperties : CfpJobProperties ?  = null
+
 	@MockBean
 	val client: PinboardClient? = null
 
@@ -53,6 +56,10 @@ class CfpJobRunnerTest {
 
 	@Test
 	fun run() {
+
+		job!!.notify(Email("cfp@joshlong.com", "From"), Email("josh@joshlong.com", "To"), "your secret",
+				"the value for the function name is ${this.cfpJobProperties!!.functionName}")
+
 		val si = Mockito.mock(ServiceInstance::class.java)
 		Mockito.`when`(si.uri).thenReturn(URI.create("http://a-uri.com/a/b/c"))
 		Mockito.`when`(this.ldc!!.getInstances(fnName)).thenReturn(arrayListOf(si))
