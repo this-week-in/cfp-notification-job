@@ -1,5 +1,6 @@
 # CFP Notification Job
 
+![Build status](https://github.com/this-week-in/cfp-notification-job/workflows/CI/badge.svg)
 
 ## Description
 
