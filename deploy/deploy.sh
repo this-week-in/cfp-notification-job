@@ -27,10 +27,6 @@ cf set-env $APP_NAME CFP_NOTIFICATIONS_DESTINATION_NAME $CFP_NOTIFICATIONS_DESTI
 cf set-env $APP_NAME CFP_NOTIFICATIONS_FUNCTION_NAME $CFP_NOTIFICATIONS_FUNCTION_NAME
 cf restart $APP_NAME
 
-#cf jobs | grep $JOB_NAME && cf delete-job -f $JOB_NAME
-#cf create-job $APP_NAME $JOB_NAME ".java-buildpack/open_jdk_jre/bin/java org.springframework.boot.loader.JarLauncher"
-#cf schedule-job ${JOB_NAME} "0 20 ? * *"
-
 cf jobs | grep $JOB_NAME && cf delete-job -f ${JOB_NAME}
 cf create-job ${APP_NAME} ${JOB_NAME} ".java-buildpack/open_jdk_jre/bin/java org.springframework.boot.loader.JarLauncher"
-cf schedule-job ${JOB_NAME} "*/15 * ? * *"
+cf schedule-job ${JOB_NAME} "0 20 ? * *"
