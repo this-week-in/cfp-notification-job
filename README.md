@@ -8,3 +8,4 @@ This application spins up, finds all the Pinboard bookmarks that have the tag `c
 ## Deployment
 
 This runs on a scheduled job on the Pivotal Cloud Foundry. You can use CRON expressions to dictate how often a given job should spin up. When it spins up, it'll scale up and run, then scale to zero. See this demo for a simpler example of a [scheduled job on Pivotal Cloud Foundry](https://github.com/joshlong/cf-task-demo).
+
