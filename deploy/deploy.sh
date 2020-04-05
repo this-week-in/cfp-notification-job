@@ -15,7 +15,7 @@ cf set-health-check $APP_NAME none # the new version of the cf cli will take 'pr
 cf s | grep ${SCHEDULER_NAME} || cf cs scheduler-for-pcf standard ${SCHEDULER_NAME}
 cf bs ${APP_NAME} ${SCHEDULER_NAME}
 
-
+cf set-env $APP_NAME JBP_CONFIG_OPEN_JDK_JRE '{ jre: { version: 11.+}}'
 cf set-env $APP_NAME PINBOARD_TOKEN $PINBOARD_TOKEN
 cf set-env $APP_NAME AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
 cf set-env $APP_NAME AWS_ACCOUNT_ID $AWS_ACCOUNT_ID
