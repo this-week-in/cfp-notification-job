@@ -32,5 +32,4 @@ cf create-job ${APP_NAME} ${JOB_NAME} ".java-buildpack/open_jdk_jre/bin/java org
 # cf schedule-job ${JOB_NAME} "0 20 * * *"
 cf schedule-job ${JOB_NAME} "30 10 ? * *"
 
-is:unread
-
+ 
