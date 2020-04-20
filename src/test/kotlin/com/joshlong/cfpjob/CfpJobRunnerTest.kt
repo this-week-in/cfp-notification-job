@@ -17,12 +17,12 @@ import org.springframework.cloud.function.discovery.aws.LambdaDiscoveryClient
 import org.springframework.test.context.junit4.SpringRunner
 import pinboard.Bookmark
 import pinboard.PinboardClient
-import pinboard.PinboardConfiguration
+import pinboard.PinboardClientAutoConfiguration
 import java.net.URI
 import java.util.*
 
 @RunWith(SpringRunner::class)
-@SpringBootTest(classes = [PinboardConfiguration::class, CfpJobApplication::class])
+@SpringBootTest(classes = [PinboardClientAutoConfiguration::class, CfpJobApplication::class])
 class CfpJobRunnerTest {
 
 	val fnName = "cfp-status-function"

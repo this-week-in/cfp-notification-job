@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "cfp.notifications")
-class CfpJobProperties(var subject: String?? = null,
+class CfpJobProperties(var subject: String? = null,
                        var source: Email? = null,
                        var destination: Email? = null,
                        var functionName: String? = null)
